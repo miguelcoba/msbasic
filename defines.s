@@ -25,6 +25,9 @@ AIM65 := 1
 .elseif .def(sym1)
 SYM1 := 1
 .include "defines_sym1.s"
+.elseif .def(coba)
+COBA := 1
+.include "defines_coba.s"
 .endif
 
 .ifdef CONFIG_2C
