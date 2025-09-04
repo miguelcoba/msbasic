@@ -13,11 +13,12 @@ MODE  = $2B			; $00=XAM, $7F=STOR, $AE=BLOCK XAM
 IN    = $0200			; Input buffer
 
 RESET:
+	CLD
+	CLI
 	LDA	#$1F		; 8-N-1, 19200 bps
 	STA	ACIA_CTRL
-	LDA	#$0B		; No parity, no echo, no interrupts.
-	STA	ACIA_CMD
-	LDA	#$1B		; Begin with escape.
+	LDY	#$8B		; No parity, no echo, no interrupts.
+	STY	ACIA_CMD
 
 NOTCR:
         CMP     #$08		; Backspace key?
@@ -33,6 +34,8 @@ ESCAPE:
 
 GETLINE:
         LDA     #$0D		; Send CR
+        JSR     ECHO
+        LDA     #$0A		; Send LF
         JSR     ECHO
 
         LDY     #$01		; Initialize text index.
@@ -131,6 +134,8 @@ NXTPRNT:
         BNE     PRDATA		; NE means no address to print.
         LDA     #$0D		; CR.
         JSR     ECHO		; Output it.
+        LDA     #$0A		; LF.
+        JSR     ECHO		; Output it.
         LDA     XAMH		; 'Examine index' high-order byte.
         JSR     PRBYTE		; Output it in hex format.
         LDA     XAML		; Low-order 'examine index' byte.
@@ -176,8 +181,8 @@ PRHEX:
         ADC     #$06		; Add offset for letter.
 
 ECHO:
-	PHA
 	STA	ACIA_DATA	; Output character.
+	PHA
 	LDA	#$FF		; Initialize delay loop.
 TXDELAY:	DEC		; Decrement A
 	BNE	TXDELAY		; Until A gets to 0.
